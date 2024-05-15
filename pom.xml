@@ -16,6 +16,16 @@
                                 ${suiteXmlFile}
                             </suiteXmlFile>
                         </suiteXmlFiles>
+                        <properties>
+                            <property>
+                                <name>usedefaultlisteners</name>
+                                <value>false</value> <!-- disabling default listeners is optional -->
+                            </property>
+                            <property>
+                                <name>reporter</name>
+                                <value>org.testng.reporters.XMLReporter</value>
+                            </property>
+                        </properties>
                     </configuration>
                 </plugin>
             </plugins>

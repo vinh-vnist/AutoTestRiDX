@@ -1,9 +1,9 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="API test">
-    <listeners>
-        <listener class-name="org.testng.reporters.EmailableReporter2"/>
-        <listener class-name="org.testng.reporters.JUnitXMLReporter"/>
-    </listeners>
+<!--    <listeners>-->
+<!--        <listener class-name="org.testng.reporters.EmailableReporter2"/>-->
+<!--        <listener class-name="org.testng.reporters.JUnitXMLReporter"/>-->
+<!--    </listeners>-->
     <test name="Test Account Service">
         <classes>
             <class name="example.demo.apitests.TestAccountService"/>
