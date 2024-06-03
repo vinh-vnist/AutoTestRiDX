@@ -1,59 +1,20 @@
 package example.demo.apitests;
 
-import io.github.cdimascio.dotenv.Dotenv;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.json.simple.JSONObject;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-public class TestSystemProfileService {
-    private static final String BASE_URL_LOGIN = "http://ridx.id.vn:3002";
-    private static final String BASE_URL_SYSTEM_PROFILE = "http://ridx.id.vn:3004";
-    private static final String CONTENT_TYPE_JSON = "application/json";
-    private static final String TOKEN_PREFIX = "Bearer ";
-    private static final String HEADER_ACCEPT = "accept";
-    private static final String HEADER_AUTHORIZATION = "Authorization";
-    private static final String HEADER_CONTENT_TYPE = "Content-Type";
-    private static final String LOGIN_ENDPOINT = "/login";
+import static example.demo.config.Config.*;
+
+public class TestSystemProfileService extends TestAPI {
     private static final String SYSTEM_PROFILES_ENDPOINT = "/system_profiles/";
-    private static final String ALL_ACCEPT = "*/*";
-    public static Dotenv dotenv = Dotenv.load();
-    public static String userEmail = dotenv.get("USER_EMAIL");
-    public static String userPassword = dotenv.get("USER_PASSWORD");
-    private String token = "";
     private String id = "";
 
-    @Test
-    public void testLoginAPI() {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("email", userEmail);
-        jsonObject.put("password", userPassword);
-
-        RestAssured.baseURI = BASE_URL_LOGIN;
-
-        Response response = RestAssured
-                .given()
-                .header(HEADER_ACCEPT, ALL_ACCEPT)
-                .header(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON)
-                .body(jsonObject.toString())
-                .when()
-                .post(LOGIN_ENDPOINT)
-                .andReturn();
-
-        int statusCode = response.getStatusCode();
-        boolean success = response.jsonPath().getBoolean("success");
-        token = response.jsonPath().getString("data.token");
-
-        Assert.assertEquals(statusCode, 200, "Login should return status 200");
-        Assert.assertTrue(success, "Login should be successful");
-        Assert.assertNotNull(token, "Token should not be null after successful login");
-    }
-
-    @Test(dependsOnMethods = "testLoginAPI")
+    @Test()
     public void testGetSystemProfiles() {
-        RestAssured.baseURI = BASE_URL_SYSTEM_PROFILE;
-
         Response response = RestAssured
                 .given()
                 .header(HEADER_ACCEPT, ALL_ACCEPT)
@@ -69,10 +30,8 @@ public class TestSystemProfileService {
         Assert.assertTrue(success, "Fetching system profiles should be successful");
     }
 
-    @Test(dependsOnMethods = "testLoginAPI")
+    @Test()
     public void testGetSystemProfilesWithInvalidToken() {
-        RestAssured.baseURI = BASE_URL_SYSTEM_PROFILE;
-
         Response response = RestAssured
                 .given()
                 .header(HEADER_ACCEPT, ALL_ACCEPT)
@@ -87,10 +46,8 @@ public class TestSystemProfileService {
         Assert.assertFalse(success);
     }
 
-    @Test(dependsOnMethods = "testLoginAPI")
+    @Test()
     public void testPostSystemProfiles() {
-        RestAssured.baseURI = BASE_URL_SYSTEM_PROFILE;
-
         JSONObject requestBody = new JSONObject();
         requestBody.put("name", "string");
         requestBody.put("description", "string");
@@ -115,9 +72,8 @@ public class TestSystemProfileService {
         Assert.assertNotNull(id, "System profile ID should not be null after successful posting");
     }
 
-    @Test(dependsOnMethods = "testLoginAPI")
+    @Test()
     public void testPostSystemProfilesWithInvalidToken() {
-        RestAssured.baseURI = BASE_URL_SYSTEM_PROFILE;
 
         JSONObject requestBody = new JSONObject();
         requestBody.put("name", "string");
@@ -142,9 +98,8 @@ public class TestSystemProfileService {
         Assert.assertNull(actualId);
     }
 
-    @Test(dependsOnMethods = "testLoginAPI")
+    @Test()
     public void testPostSystemProfilesInvalidTypeOfName() {
-        RestAssured.baseURI = BASE_URL_SYSTEM_PROFILE;
 
         JSONObject requestBody = new JSONObject();
         requestBody.put("name", 123);
@@ -170,9 +125,8 @@ public class TestSystemProfileService {
         Assert.assertNull(actualId);
     }
 
-    @Test(dependsOnMethods = "testLoginAPI")
+    @Test()
     public void testPostSystemProfilesInvalidTypeOfDescription() {
-        RestAssured.baseURI = BASE_URL_SYSTEM_PROFILE;
 
         JSONObject requestBody = new JSONObject();
         requestBody.put("name", "string");
@@ -200,7 +154,6 @@ public class TestSystemProfileService {
 
     @Test(dependsOnMethods = "testPostSystemProfiles")
     public void testGetSystemProfileById() {
-        RestAssured.baseURI = BASE_URL_SYSTEM_PROFILE;
         Response response = RestAssured
                 .given()
                 .header(HEADER_ACCEPT, ALL_ACCEPT)
@@ -220,8 +173,6 @@ public class TestSystemProfileService {
 
     @Test
     public void testGetSystemProfileByIncorrectId() {
-        RestAssured.baseURI = BASE_URL_SYSTEM_PROFILE;
-
         Response response = RestAssured
                 .given()
                 .header(HEADER_ACCEPT, ALL_ACCEPT)
@@ -241,8 +192,6 @@ public class TestSystemProfileService {
 
     @Test(dependsOnMethods = "testPostSystemProfiles")
     public void testUpdateSystemProfile() {
-        RestAssured.baseURI = BASE_URL_SYSTEM_PROFILE;
-
         JSONObject requestBody = new JSONObject();
         requestBody.put("name", "stringe");
         requestBody.put("description", "stringe");
@@ -264,10 +213,8 @@ public class TestSystemProfileService {
         Assert.assertTrue(success);
     }
 
-    @Test(dependsOnMethods = "testLoginAPI")
+    @Test()
     public void testUpdateSystemProfileWithIncorrectId() {
-        RestAssured.baseURI = BASE_URL_SYSTEM_PROFILE;
-
         JSONObject requestBody = new JSONObject();
         requestBody.put("name", "stringe");
         requestBody.put("description", "stringe");
@@ -293,7 +240,6 @@ public class TestSystemProfileService {
 
     @Test(dependsOnMethods = "testUpdateSystemProfile")
     public void testDeleteSystemProfile() {
-        RestAssured.baseURI = BASE_URL_SYSTEM_PROFILE;
         Response response = RestAssured
                 .given()
                 .header(HEADER_ACCEPT, ALL_ACCEPT)
@@ -309,9 +255,8 @@ public class TestSystemProfileService {
         Assert.assertTrue(success);
     }
 
-    @Test(dependsOnMethods = "testLoginAPI")
+    @Test()
     public void testDeleteSystemProfileWithIncorrectId() {
-        RestAssured.baseURI = BASE_URL_SYSTEM_PROFILE;
         Response response = RestAssured
                 .given()
                 .header(HEADER_ACCEPT, ALL_ACCEPT)

@@ -11,8 +11,7 @@ public class Config {
     public static final String TOKEN_PREFIX = "Bearer ";
     public static Dotenv dotenv = Dotenv.load();
     public static final String BASE_URL = dotenv.get("BASE_URL");
-    public static final int ACCOUNT_PORT = Integer.parseInt(dotenv.get("ACCOUNT_PORT"));
-    public static final int CATEGORY_PORT = Integer.parseInt(dotenv.get("CATEGORY_PORT"));
+    public static final String API_PREFIX = dotenv.get("API_PREFIX");
     public static final String ADMIN_EMAIL = dotenv.get("ADMIN_EMAIL");
     public static final String ADMIN_PASSWORD = dotenv.get("ADMIN_PASSWORD");
     public static final String USER_EMAIL = dotenv.get("USER_EMAIL");

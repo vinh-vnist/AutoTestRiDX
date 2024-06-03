@@ -12,19 +12,14 @@ import static example.demo.config.Config.*;
 import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 
-public class TestAccountService {
+public class TestAccountService extends TestAPI {
     private static final String LOGIN_ENDPOINT = "/login";
     private static final String LOGOUT_ENDPOINT = "/logout";
     private static final String CURRENT_USER_ENDPOINT = "/current_user";
     private static final String USERS_ENDPOINT = "/users";
     private String userToken = "";
     private String adminToken = "";
-    @BeforeClass
-    public void setup(){
-        RestAssured.baseURI = BASE_URL;
-        RestAssured.port = ACCOUNT_PORT;
 
-    }
     private Response loginWithUsernamePassword(String username, String password) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("email", username);
@@ -69,7 +64,9 @@ public class TestAccountService {
     @Test
     public void testLogout(){
         given().
-                header(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON, HEADER_ACCEPT, ALL_ACCEPT).
+                header(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON).
+                header(HEADER_ACCEPT, ALL_ACCEPT).
+                header(HEADER_AUTHORIZATION, TOKEN_PREFIX + userToken).
         when().
                 post(LOGOUT_ENDPOINT).
         then().

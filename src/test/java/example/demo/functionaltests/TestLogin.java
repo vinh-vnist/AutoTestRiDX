@@ -3,52 +3,111 @@ package example.demo.functionaltests;
 import example.demo.pages.LoginPage;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Proxy;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.testng.Assert;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
+import org.zaproxy.clientapi.core.ApiResponse;
+import org.zaproxy.clientapi.core.ApiResponseElement;
+import org.zaproxy.clientapi.core.ClientApi;
+import org.zaproxy.clientapi.core.ClientApiException;
 
-import java.time.Duration;
+import java.io.File;
 
 public class TestLogin {
 
     private WebDriver driver;
+    private WebDriverManager webDriverManager = WebDriverManager.chromedriver();
+    private ClientApi clientApi;
+    private static ApiResponse apiResponse;
+    public static final String ZAP_PROXY_ADDRESS = "host.docker.internal";
+    public static final int ZAP_PROXY_PORT = 8088;
 
-    @BeforeMethod
+    @BeforeTest
     public void setUpTest() {
-        WebDriverManager.chromedriver().setup();
-        driver = new ChromeDriver();
+        String proxyAddress = ZAP_PROXY_ADDRESS + ":" + ZAP_PROXY_PORT;
+        Proxy proxy = new Proxy();
+        proxy.setHttpProxy(proxyAddress).setSslProxy(proxyAddress);
+
+        ChromeOptions options = new ChromeOptions();
+        options.setAcceptInsecureCerts(true);
+        options.addArguments("--ignore-certificate-errors");
+        options.setProxy(proxy);
+
+        driver = webDriverManager.capabilities(options).browserInDocker().create();
         driver.manage().window().maximize();
+        clientApi = new ClientApi("localhost", ZAP_PROXY_PORT);
     }
 
-    @AfterMethod
+    @AfterTest
     public void tearDown() {
+        waitTillPassiveScanCompleted();
+        if(clientApi != null){
+            String title = "RiDX ZAP Security Report";
+            String template = "traditional-html";
+            String description = "This is RiDX ZAP security test report";
+            String reportFilename = "ridx-zap-report";
+            String targetFolder = "/zap/wrk/";
+            try {
+                clientApi.reports.generate(title, template, null, description, null, null,
+                        null, null, null, reportFilename, null,
+                        targetFolder, null);
+
+            } catch (ClientApiException e){
+                e.printStackTrace();
+            }
+        }
         if (driver != null) {
             driver.manage().deleteAllCookies();
             driver.quit();
         }
+        webDriverManager.quit();
     }
 
     @Test
-    public void verifyLoginSuccessfullyWithAdminRole() {
+    public void verifyLoginSuccessfullyWithUserRole() {
         LoginPage.login(driver);
         WebElement menuBar = driver.findElement(By.className("ant-layout-sider-children"));
         Assert.assertTrue(menuBar.isDisplayed(), "Menu bar should be displayed after successful login.");
     }
 
-    @Test()
-    public void verifyAccessUserManagementAfterLoginSuccessfullyWithAdminRole() {
-        LoginPage.login(driver);
-        WebElement userManagermentSide = new WebDriverWait(driver, Duration.ofSeconds(10))
-                .until(ExpectedConditions.elementToBeClickable(By.cssSelector(LoginPage.USER_MANAGEMENT_LINK_CSS)));
-        userManagermentSide.click();
+    @Test(dependsOnMethods = "verifyLoginSuccessfullyWithUserRole")
+    public void testNavigationBarAfterLoginSuccessfullyWithUserRole() {
+        WebElement webElement = driver.findElement(By.cssSelector(LoginPage.DASHBOARD_LINK_CSS));
+        webElement.click();
+        Assert.assertTrue(driver.getCurrentUrl().endsWith("/dashboard"), "Should navigate to dashboard page.");
+        webElement = driver.findElement(By.cssSelector(LoginPage.SYSTEM_PROFILES_LINK_CSS));
+        webElement.click();
+        Assert.assertTrue(driver.getCurrentUrl().endsWith("/system-profiles"), "Should navigate to system profiles page.");
+    }
 
-        Assert.assertTrue(driver.getCurrentUrl().endsWith("/admin/users"), "Should navigate to user management page.");
+    private void waitTillPassiveScanCompleted() {
+        try {
+            // Check if the clientApi object and its pscan property are not null.
+            // Object is null, it means that there is no active session with OWASP ZAP, and therefore no passive scan is in progress.
+            //
+            if (clientApi != null && clientApi.pscan != null) {
+                // Send an API request to retrieve the number of records that need to be scanned
+                apiResponse = clientApi.pscan.recordsToScan();
+                // Get the value of the response and store it in tempVal
+                String tempVal = ((ApiResponseElement) apiResponse).getValue();
+
+                while (!tempVal.equals("0")) {
+                    System.out.println("Passive scan is in progress...");
+                    // Send another API request to retrieve the number of records that need to be scanned
+                    apiResponse = clientApi.pscan.recordsToScan();
+                    // Get the value of the response and store it in tempVal
+                    tempVal = ((ApiResponseElement) apiResponse).getValue();
+                }
+                System.out.println("Passive scan is completed.");
+            } else {
+                System.out.println("Client API object is null.");
+            }
+        } catch (ClientApiException  e) {
+            e.printStackTrace();
+        }
     }
 
 }
