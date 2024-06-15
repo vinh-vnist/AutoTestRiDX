@@ -1,4 +1,4 @@
-package example.demo.pages;
+package example.demo.functionaltests.pages;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import org.openqa.selenium.By;

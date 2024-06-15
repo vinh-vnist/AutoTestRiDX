@@ -16,4 +16,6 @@ public class Config {
     public static final String ADMIN_PASSWORD = dotenv.get("ADMIN_PASSWORD");
     public static final String USER_EMAIL = dotenv.get("USER_EMAIL");
     public static final String USER_PASSWORD = dotenv.get("USER_PASSWORD");
+    public static final String ZAP_PROXY_ADDRESS = dotenv.get("ZAP_PROXY_ADDRESS");
+    public static final int ZAP_PROXY_PORT = Integer.parseInt(dotenv.get("ZAP_PROXY_PORT"));
 }

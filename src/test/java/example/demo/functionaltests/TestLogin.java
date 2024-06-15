@@ -1,6 +1,6 @@
 package example.demo.functionaltests;
 
-import example.demo.pages.LoginPage;
+import example.demo.functionaltests.pages.LoginPage;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Proxy;
@@ -14,7 +14,8 @@ import org.zaproxy.clientapi.core.ApiResponseElement;
 import org.zaproxy.clientapi.core.ClientApi;
 import org.zaproxy.clientapi.core.ClientApiException;
 
-import java.io.File;
+import static example.demo.config.Config.ZAP_PROXY_ADDRESS;
+import static example.demo.config.Config.ZAP_PROXY_PORT;
 
 public class TestLogin {
 
@@ -22,8 +23,6 @@ public class TestLogin {
     private WebDriverManager webDriverManager = WebDriverManager.chromedriver();
     private ClientApi clientApi;
     private static ApiResponse apiResponse;
-    public static final String ZAP_PROXY_ADDRESS = "host.docker.internal";
-    public static final int ZAP_PROXY_PORT = 8088;
 
     @BeforeTest
     public void setUpTest() {
@@ -38,7 +37,7 @@ public class TestLogin {
 
         driver = webDriverManager.capabilities(options).browserInDocker().create();
         driver.manage().window().maximize();
-        clientApi = new ClientApi("localhost", ZAP_PROXY_PORT);
+        clientApi = new ClientApi(ZAP_PROXY_ADDRESS, ZAP_PROXY_PORT);
     }
 
     @AfterTest
