@@ -35,7 +35,7 @@ public class TestLogin {
         options.addArguments("--ignore-certificate-errors");
         options.setProxy(proxy);
 
-        driver = webDriverManager.capabilities(options).browserInDocker().create();
+        driver = webDriverManager.capabilities(options).browserInDocker().dockerNetwork("ridx-cicd_jenkins-net").create();
         driver.manage().window().maximize();
         clientApi = new ClientApi(ZAP_PROXY_ADDRESS, ZAP_PROXY_PORT);
     }
